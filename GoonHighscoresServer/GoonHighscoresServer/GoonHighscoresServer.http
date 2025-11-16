@@ -1,6 +1,0 @@
-@GoonHighscoresServer_HostAddress = http://localhost:5017
-
-GET {{GoonHighscoresServer_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
