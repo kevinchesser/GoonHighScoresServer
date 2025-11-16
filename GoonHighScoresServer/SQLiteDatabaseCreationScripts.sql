@@ -6,19 +6,71 @@ CREATE TABLE Character (
 	DiscordUserId TEXT(60)
 );
 
+/*
 INSERT INTO Character(Name, DiscordUserId) VALUES
-('Wooshylooshy', '188478537102000137');
+('Some name', 'Some id');
+*/
 
-INSERT INTO Character(Name, DiscordUserId) VALUES
-('killercody07', '290340752679239682'),
-('jamarc','237020028795355136');
+CREATE TABLE Skill (
+	Id INTEGER NOT NULL PRIMARY KEY,
+	Name Text(30) NOT NULL
+);
 
-INSERT INTO Organizer (DiscordId,Note) VALUES
-	 ('188478537102000137','wooshy'),
-	 ('235525388502171649','mira'),
-	 ('135134371828072449','ken'),
-	 ('143639064367595520','stnu'),
-	 ('262084940236062720','pyre'),
-	 ('245334372947984385','bz'),
-	 ('245334372947984385','lilscrappy'),
-	 ('200496102716211200','infi');
+/*
+INSERT INTO Skill(Id, Name) VALUES
+(0, 'Overall'),
+(1, 'Attack'),
+(2, 'Defence'),
+(3, 'Strength'),
+(4, 'Hitpoints'),
+(5, 'Ranged'),
+(6, 'Prayer'),
+(7, 'Magic'),
+(8, 'Cooking'),
+(9, 'Woodcutting'),
+(10, 'Fletching'),
+(11, 'Fishing'),
+(12, 'Firemaking'),
+(13, 'Crafting'),
+(14, 'Smithing'),
+(15, 'Mining'),
+(16, 'Herblore'),
+(17, 'Agility'),
+(18, 'Thieving'),
+(19, 'Slayer'),
+(20, 'Farming'),
+(21, 'Runecraft'),
+(22, 'Hunter'),
+(23, 'Construction');
+*/
+
+CREATE TABLE XpDrop (
+	Id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	CharacterId INTEGER NOT NULL,
+	SkillId INTEGER NOT NULL,
+	Xp INTEGER NOT NULL,
+	Level INTEGER NOT NULL,
+	Rank INTEGER NOT NULL,
+	Timestamp TEXT(40) NOT NULL,
+	CONSTRAINT SkillId_FK FOREIGN KEY (SKillId) REFERENCES Skill(Id) DEFERRABLE INITIALLY IMMEDIATE,
+	CONSTRAINT CharacterId_FK FOREIGN KEY (CharacterId) REFERENCES Character(Id) DEFERRABLE INITIALLY IMMEDIATE
+);
+
+/*
+SELECT Xp, MAX(Id) from XpDrop
+WHERE CharacterId = 1 AND SkillId = 0
+Group BY Id;
+
+SELECT MAX(Xp) from XPDrop WHERE CharacterId = 1 AND SkillId = 0;
+
+Select xpDrop1.Xp
+FROM XpDrop xpDrop1
+LEFT OUTER JOIN XpDrop xpDrop2 on xpDrop1.CharacterId = xpDrop2.CharacterId
+AND xpDrop1.Xp < xpDrop2.Xp;
+
+INSERT INTO XpDrop(CharacterId, SkillId, Xp, Level, Rank, Timestamp) VALUES 
+(1, 0, 150, 2, 5000, 'timestamp')
+
+DROP Table XpDrop;
+*/
+
