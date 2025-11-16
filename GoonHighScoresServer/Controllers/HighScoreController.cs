@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace GoonHighScoresServer.Controllers
 {
     [ApiController]
-    [Route("controller")]
+    [Route("[controller]")]
     public class HighScoreController : ControllerBase
     {
         private readonly IHighScoreService _highScoreService;
