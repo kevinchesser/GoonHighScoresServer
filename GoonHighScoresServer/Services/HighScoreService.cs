@@ -45,7 +45,7 @@ namespace GoonHighScoresServer.Services
                     TimeSpanOverallXp = xpGained
                 });
             }
-            timespanXpLeaderboardViewModel.TimeSpanLeaderboardItems = timespanXpLeaderboardViewModel.TimeSpanLeaderboardItems.OrderBy(x => x.TimeSpanOverallXp).ToList();
+            timespanXpLeaderboardViewModel.TimeSpanLeaderboardItems = timespanXpLeaderboardViewModel.TimeSpanLeaderboardItems.OrderByDescending(x => x.TimeSpanOverallXp).ToList();
 
             return timespanXpLeaderboardViewModel;
         }
