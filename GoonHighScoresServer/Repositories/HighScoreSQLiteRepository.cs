@@ -15,6 +15,80 @@ namespace GoonHighScoresServer.Repositories
             _options = options.Value;
         }
 
+        public async Task<Dictionary<int, CharacterLeaderboardEntry>> GetCharacterLeaderboardEntriesForOverallXp(DateTime backdatedDateTimeUtc)
+        {
+            Dictionary<int, CharacterLeaderboardEntry> overallXpDropsDictionary = new Dictionary<int, CharacterLeaderboardEntry>();
+
+            using(SQLiteConnection connection = new SQLiteConnection(_options.ConnectionString))
+            {
+                await connection.OpenAsync();
+                using(SQLiteCommand command = new SQLiteCommand(connection))
+                {
+                    string sqlCommand = @"
+                        Select XpDrop.Xp, XpDrop.SkillId, XpDrop.Timestamp, Character.Name, Character.Id as CharacterId from XpDrop INNER JOIN Character ON XpDrop.CharacterId = Character.Id
+                        WHERE XpDrop.Timestamp > @cutoffDate AND XpDrop.SkillId = 0
+
+                        UNION ALL
+
+                        Select XpDrop.Xp, XpDrop.SkillId, XpDrop.Timestamp, Character.Name, Character.Id as CharacterId from XpDrop INNER JOIN Character ON XpDrop.CharacterId = Character.Id
+                        WHERE XpDrop.Timestamp = (
+                        SELECT MAX(XpDrop.Timestamp)
+                        FROM XpDrop
+                        WHERE XpDrop.Timestamp <= @cutoffDate) AND XpDrop.SkillId = 0; 
+                        ";
+                    command.CommandText = sqlCommand;
+                    command.Parameters.AddWithValue("@cutoffDate", backdatedDateTimeUtc);
+                    command.Prepare();
+
+                    using(SQLiteDataReader reader = command.ExecuteReader())
+                    {
+                        while(reader.Read())
+                        {
+                            int xp = reader.GetInt32(reader.GetOrdinal("Xp"));
+                            int skillId = reader.GetInt32(reader.GetOrdinal("SkillId"));
+                            DateTime timeStamp = DateTime.Parse(reader.GetString(reader.GetOrdinal("Timestamp")));
+                            string characterName = reader.GetString(reader.GetOrdinal("Name"));
+                            int characterId = reader.GetInt32(reader.GetOrdinal("CharacterId"));
+
+                            if(!overallXpDropsDictionary.ContainsKey(characterId))
+                            {
+                                XpDrop xpDrop = new XpDrop()
+                                {
+                                    Xp = xp,
+                                    SkillId = skillId,
+                                    TimeStamp = timeStamp
+                                };
+                                overallXpDropsDictionary.Add(characterId, new CharacterLeaderboardEntry()
+                                {
+                                    Character = new Character() 
+                                    {
+                                        Name = characterName ,
+                                        Id = characterId
+                                    },
+                                    XpDrops = new List<XpDrop>() { xpDrop }
+                                });
+                            }
+                            else
+                            {
+                                XpDrop xpDrop = new XpDrop()
+                                {
+                                    Xp = xp,
+                                    SkillId = skillId,
+                                    TimeStamp = timeStamp
+                                };
+
+                                overallXpDropsDictionary[characterId].XpDrops.Add(xpDrop);
+                            }
+                        }
+                    }
+                }
+
+                await connection.CloseAsync();
+            }
+
+            return overallXpDropsDictionary;
+        }
+
         public async Task<List<Character>> GetCharacters()
         {
             List<Character> characters = new List<Character>(10);
@@ -33,13 +107,13 @@ namespace GoonHighScoresServer.Repositories
                         {
                             int id = reader.GetInt32(reader.GetOrdinal("Id"));
                             string characterName = reader.GetString(reader.GetOrdinal("Name"));
-                            string discordUserId = reader.GetString(reader.GetOrdinal("DiscordUserId"));
+                            //string discordUserId = reader.GetString(reader.GetOrdinal("DiscordUserId"));
 
                             Character character = new Character()
                             {
                                 Id = id,
                                 Name = characterName,
-                                DiscordUserId = discordUserId,
+                            //    DiscordUserId = discordUserId,
                             };
                             characters.Add(character);
                         }

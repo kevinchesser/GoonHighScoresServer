@@ -8,5 +8,6 @@
         public int Xp { get; set; }
         public int Level { get; set; }
         public int Rank { get; set; }
+        public DateTime TimeStamp { get; set; }
     }
 }

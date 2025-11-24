@@ -32,8 +32,8 @@ namespace GoonHighScoresServer.Controllers
         [HttpGet("last24HourLeaderboard")]
         public async Task<IActionResult> Last24HourLeaderboard()
         {
-            await _highScoreService.GetLastXTimeSpanOverallXpLeadboard(TimeSpan.FromHours(24));
-            return Ok();
+            TimespanXpLeaderboardViewModel timespanXpLeaderboardViewModel = await _highScoreService.GetLastXTimeSpanOverallXpLeadboard(TimeSpan.FromHours(24));
+            return Ok(timespanXpLeaderboardViewModel);
         }
     }
 }

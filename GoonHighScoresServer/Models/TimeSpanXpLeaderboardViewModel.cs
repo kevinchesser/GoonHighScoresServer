@@ -2,7 +2,7 @@
 {
     public class TimespanXpLeaderboardViewModel
     {
-        public required List<TimeSpanLeaderboardItem> TimeSpanLeaderboardItems { get; set; }
+        public List<TimeSpanLeaderboardItem>? TimeSpanLeaderboardItems { get; set; }
         public TimeSpan TimeSpanUsed { get; set; }
     }
 }

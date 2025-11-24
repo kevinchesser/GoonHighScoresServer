@@ -1,4 +1,5 @@
-﻿using GoonHighScoresServer.Interfaces;
+﻿using System.ComponentModel.DataAnnotations;
+using GoonHighScoresServer.Interfaces;
 using GoonHighScoresServer.Models;
 
 namespace GoonHighScoresServer.Services
@@ -19,9 +20,33 @@ namespace GoonHighScoresServer.Services
             return await _highScoreRepository.GetCharacters();
         }
 
-        public Task<TimespanXpLeaderboardViewModel> GetLastXTimeSpanOverallXpLeadboard(TimeSpan lookbackTimeSpan)
+        public async Task<TimespanXpLeaderboardViewModel> GetLastXTimeSpanOverallXpLeadboard(TimeSpan lookbackTimeSpan)
         {
-            throw new NotImplementedException();
+            TimespanXpLeaderboardViewModel timespanXpLeaderboardViewModel = new TimespanXpLeaderboardViewModel()
+            {
+                TimeSpanUsed = lookbackTimeSpan
+            };
+
+            Dictionary<int, CharacterLeaderboardEntry> characterLeaderboardEntryDict =  await _highScoreRepository.GetCharacterLeaderboardEntriesForOverallXp(DateTime.UtcNow - lookbackTimeSpan);
+            List<TimeSpanLeaderboardItem> timeSpanLeaderboardItems = new List<TimeSpanLeaderboardItem>();
+            timespanXpLeaderboardViewModel.TimeSpanLeaderboardItems = timeSpanLeaderboardItems;
+            foreach (CharacterLeaderboardEntry characterLeaderboardEntry in characterLeaderboardEntryDict.Values)
+            {
+                if(characterLeaderboardEntry.XpDrops.Count < 2)
+                    continue;
+
+                int earliestXp = characterLeaderboardEntry.XpDrops.MinBy(x => x.TimeStamp)!.Xp;
+                int latestXp = characterLeaderboardEntry.XpDrops.MaxBy(x => x.TimeStamp)!.Xp;
+                int xpGained = latestXp - earliestXp;
+
+                timeSpanLeaderboardItems.Add(new TimeSpanLeaderboardItem() 
+                { 
+                    Character = characterLeaderboardEntry.Character, 
+                    TimeSpanOverallXp = xpGained
+                });
+            }
+
+            return timespanXpLeaderboardViewModel;
         }
 
         public async Task RecordXpDropsIfNecessary(Character character, Dictionary<int, OsrsSkill> osrsCharacterStats, string processingTime)

@@ -81,9 +81,26 @@ DROP Table XpDrop;
 
 
 INSERT INTO XpDrop(CharacterId, SkillId, Xp, Level, Rank, Timestamp) VALUES 
-(1, 0, 500000000, 40000, 2326, '2025-11-24 15:40:37.639');
+(1, 0, 500000000, 40000, 2326, '2025-11-25 15:40:37.639');
 
 Select Max(Xp), SkillId from XpDrop 
 WHERE CharacterId = 1
 Group BY SkillId;
+
+2025-11-24 07:44:22.537
+
+Select XpDrop.Xp, XpDrop.SkillId, XpDrop.Timestamp, Character.Name, Character.Id as CharacterId from XpDrop INNER JOIN Character ON XpDrop.CharacterId = Character.Id
+WHERE XpDrop.Timestamp > '2025-11-24 07:44:22.537' AND XpDrop.SkillId = 0
+
+UNION ALL
+
+Select XpDrop.Xp, XpDrop.SkillId, XpDrop.Timestamp, Character.Name, Character.Id as CharacterId from XpDrop INNER JOIN Character ON XpDrop.CharacterId = Character.Id
+WHERE XpDrop.Timestamp = (
+    SELECT MAX(XpDrop.Timestamp)
+    FROM XpDrop
+    WHERE XpDrop.Timestamp <= '2025-11-24 07:44:22.537') AND XpDrop.SkillId = 0;
+
 */
+
+
+
