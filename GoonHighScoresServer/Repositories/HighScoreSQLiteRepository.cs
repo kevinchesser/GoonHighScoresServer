@@ -77,9 +77,35 @@ namespace GoonHighScoresServer.Repositories
             return overallXp;
         }
 
-        public Task<List<XpDrop>> GetMostRecentXpDrops(int characterId)
+        public async Task<Dictionary<int, int>> GetMostRecentXpDrops(int characterId)
         {
-            throw new NotImplementedException();
+            Dictionary<int, int> mostRecentXpDrops = new Dictionary<int, int>();
+
+            using(SQLiteConnection connection = new SQLiteConnection(_options.ConnectionString))
+            {
+                await connection.OpenAsync();
+                using(SQLiteCommand command = new SQLiteCommand(connection))
+                {
+                    command.CommandText = "SELECT MAX(Xp) as MaxXp, SkillId from XpDrop WHERE CharacterId = @characterId Group BY SkillId";
+                    command.Parameters.AddWithValue("@characterId", characterId);
+                    command.Prepare();
+
+                    using(SQLiteDataReader reader = command.ExecuteReader())
+                    {
+                        while(reader.Read())
+                        {
+                            int xp = reader.GetInt32(reader.GetOrdinal("MaxXp"));
+                            int skillId = reader.GetInt32(reader.GetOrdinal("SkillId"));
+
+                            mostRecentXpDrops.Add(skillId, xp);
+                        }
+                    }
+                }
+
+                await connection.CloseAsync();
+            }
+
+            return mostRecentXpDrops;
         }
 
         public async Task SaveXpDrops(List<XpDrop> xpDrops, string processingTime)

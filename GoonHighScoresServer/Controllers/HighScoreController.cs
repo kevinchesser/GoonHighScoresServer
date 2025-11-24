@@ -21,5 +21,19 @@ namespace GoonHighScoresServer.Controllers
             List<Character> characterNames = await _highScoreService.GetCharacters();
             return Ok(characterNames);
         }
+
+        [HttpGet("{characterName}")]
+        public async Task<IActionResult> GetCharacterOverview([FromRoute]string characterName)
+        {
+            return Ok();
+        }
+
+
+        [HttpGet("last24HourLeaderboard")]
+        public async Task<IActionResult> Last24HourLeaderboard()
+        {
+            await _highScoreService.GetLastXTimeSpanOverallXpLeadboard(TimeSpan.FromHours(24));
+            return Ok();
+        }
     }
 }

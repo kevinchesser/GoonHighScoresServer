@@ -3,6 +3,7 @@ using GoonHighScoresServer.Repositories;
 using GoonHighScoresServer.Services;
 using Microsoft.OpenApi;
 using static GoonHighScoresServer.Repositories.HighScoreSQLiteRepository;
+using static GoonHighScoresServer.Services.HighScoreUpdateBackgroundService;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 IServiceCollection services = builder.Services;
@@ -57,6 +58,7 @@ void ConfigureHostedServices()
 {
     services.AddHostedService<TrackedCharacterBackgroundService>();
     services.AddHostedService<HighScoreUpdateBackgroundService>();
+    services.Configure<HighScoreUpdateBackgroundServiceOptions>(configuration.GetSection("HighScoreUpdateBackgroundService"));
 }
 
 void ConfigureHttpClients()

@@ -6,6 +6,9 @@ CREATE TABLE Character (
 	DiscordUserId TEXT(60)
 );
 
+CREATE UNIQUE INDEX character_name
+ON Character(name);
+
 /*
 INSERT INTO Character(Name, DiscordUserId) VALUES
 ('Some name', 'Some id');
@@ -41,8 +44,11 @@ INSERT INTO Skill(Id, Name) VALUES
 (20, 'Farming'),
 (21, 'Runecraft'),
 (22, 'Hunter'),
-(23, 'Construction');
+(23, 'Construction'),
+(24, 'Sailing');
 */
+
+
 
 CREATE TABLE XpDrop (
 	Id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -56,7 +62,7 @@ CREATE TABLE XpDrop (
 	CONSTRAINT CharacterId_FK FOREIGN KEY (CharacterId) REFERENCES Character(Id) DEFERRABLE INITIALLY IMMEDIATE
 );
 
-/*
+/* - Scratchpad testing queries
 SELECT Xp, MAX(Id) from XpDrop
 WHERE CharacterId = 1 AND SkillId = 0
 Group BY Id;
@@ -72,5 +78,12 @@ INSERT INTO XpDrop(CharacterId, SkillId, Xp, Level, Rank, Timestamp) VALUES
 (1, 0, 150, 2, 5000, 'timestamp')
 
 DROP Table XpDrop;
-*/
 
+
+INSERT INTO XpDrop(CharacterId, SkillId, Xp, Level, Rank, Timestamp) VALUES 
+(1, 0, 500000000, 40000, 2326, '2025-11-24 15:40:37.639');
+
+Select Max(Xp), SkillId from XpDrop 
+WHERE CharacterId = 1
+Group BY SkillId;
+*/

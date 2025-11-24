@@ -1,20 +1,23 @@
 ﻿using GoonHighScoresServer.Interfaces;
 using GoonHighScoresServer.Models;
+using Microsoft.Extensions.Options;
 
 namespace GoonHighScoresServer.Services
 {
     public class HighScoreUpdateBackgroundService : BackgroundService
     {
         private readonly ILogger<HighScoreUpdateBackgroundService> _logger;
+        private readonly HighScoreUpdateBackgroundServiceOptions _options;
         private readonly IOldSchoolRunescapeApiClient _oldSchoolRunescapeApiClient;
         private readonly ITrackedCharacterStore _trackedCharacterStore;
         private readonly IHighScoreService _highScoreService;
         private int _executionCount;
 
-        public HighScoreUpdateBackgroundService(ILogger<HighScoreUpdateBackgroundService> logger, IOldSchoolRunescapeApiClient oldSchoolRunescapeApiClient,
-            ITrackedCharacterStore trackedCharacterStore, IHighScoreService highScoreService)
+        public HighScoreUpdateBackgroundService(ILogger<HighScoreUpdateBackgroundService> logger, IOptions<HighScoreUpdateBackgroundServiceOptions> options,
+            IOldSchoolRunescapeApiClient oldSchoolRunescapeApiClient, ITrackedCharacterStore trackedCharacterStore, IHighScoreService highScoreService)
         {
             _logger = logger;
+            _options = options.Value;
             _oldSchoolRunescapeApiClient = oldSchoolRunescapeApiClient;
             _trackedCharacterStore = trackedCharacterStore;
             _highScoreService = highScoreService;
@@ -23,6 +26,9 @@ namespace GoonHighScoresServer.Services
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             _logger.LogInformation("HighScoreUpdateBackgroundService execution started");
+
+            if(!_options.Enabled)
+                return;
 
             using PeriodicTimer trackedCharacterTimer = new(TimeSpan.FromSeconds(5));
             while(await trackedCharacterTimer.WaitForNextTickAsync(stoppingToken))
@@ -71,7 +77,13 @@ namespace GoonHighScoresServer.Services
             _logger.LogInformation("ProcessHighScoresForCharacter: {name} {executionCount}", character.Name, count);
 
             OsrsCharacterStats osrsCharacterStats = await _oldSchoolRunescapeApiClient.GetOsrsCharacterStats(character.Name);
-            await _highScoreService.RecordXpDropsIfNecessary(character, osrsCharacterStats, processingTime);
+            Dictionary<int, OsrsSkill> osrsCharacterStatDictionary = osrsCharacterStats.Skills.ToDictionary(x => x.Id, y => y);
+            await _highScoreService.RecordXpDropsIfNecessary(character, osrsCharacterStatDictionary, processingTime);
+        }
+
+        public class HighScoreUpdateBackgroundServiceOptions
+        {
+            public bool Enabled { get; set; }
         }
     }
 }
