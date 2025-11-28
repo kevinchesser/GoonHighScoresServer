@@ -39,7 +39,7 @@ namespace GoonHighScoresServer.Services
 
             await DoWorkAsync();
 
-            using PeriodicTimer timer = new(TimeSpan.FromMinutes(20));
+            using PeriodicTimer timer = new(TimeSpan.FromMinutes(30));
 
             try
             {
