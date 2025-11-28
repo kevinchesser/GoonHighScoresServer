@@ -1,4 +1,5 @@
-﻿using GoonHighScoresServer.Interfaces;
+﻿using GoonHighScoresServer.Exceptions;
+using GoonHighScoresServer.Interfaces;
 using GoonHighScoresServer.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,19 +16,24 @@ namespace GoonHighScoresServer.Controllers
             _highScoreService = highScoreService;
         }
 
-        [HttpGet("characterNames")]
-        public async Task<IActionResult> CharacterNames()
-        {
-            List<Character> characterNames = await _highScoreService.GetCharacters();
-            return Ok(characterNames);
-        }
-
         [HttpGet("{characterName}")]
         public async Task<IActionResult> GetCharacterOverview([FromRoute]string characterName)
         {
-            return Ok();
-        }
+            try
+            {
+                CharacterOverview characterOverview = await _highScoreService.GetCharacterOverview(characterName);
+                return Ok(characterOverview);
+            }
+            catch(Exception ex)
+            {
+                if (ex is CharacterNotFoundException exception)
+                {
+                    return NotFound(exception.Message);
+                }
 
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+        }
 
         [HttpGet("last24HourLeaderboard")]
         public async Task<IActionResult> Last24HourLeaderboard()

@@ -15,6 +15,105 @@ namespace GoonHighScoresServer.Repositories
             _options = options.Value;
         }
 
+        public async Task<int> GetCharacterId(string characterName)
+        {
+            int characterId = -1;
+
+            using(SQLiteConnection connection = new SQLiteConnection(_options.ConnectionString))
+            {
+                await connection.OpenAsync();
+                using(SQLiteCommand command = new SQLiteCommand(connection))
+                {
+                    command.CommandText = "SELECT Id from Character where Name = @name";
+                    command.Parameters.AddWithValue("@name", characterName);
+                    command.Prepare();
+
+                    using(SQLiteDataReader reader = command.ExecuteReader())
+                    {
+                        while(reader.Read())
+                        {
+                            int id = reader.GetInt32(reader.GetOrdinal("Id"));
+
+                            characterId = id;
+                        }
+                    }
+                }
+
+                await connection.CloseAsync();
+            }
+
+            return characterId;
+        }
+
+        public async Task<List<XpDrop>> GetAllXpDropsAndFallbackIfNoXpDropWithinCutoff(int characterId, DateTime backdatedDateTimeUtc)
+        {
+            List<XpDrop> xpDrops = new List<XpDrop>();
+
+            using(SQLiteConnection connection = new SQLiteConnection(_options.ConnectionString))
+            {
+                await connection.OpenAsync();
+                using(SQLiteCommand command = new SQLiteCommand(connection))
+                {
+                    string sqlCommand = @"
+                       SELECT Xp, SkillId, Timestamp, Level, Rank
+                       FROM XpDrop AS x
+                       WHERE x.CharacterId = @characterId
+                         AND x.TimeStamp >= @cutoffDate
+
+                       UNION ALL
+
+                       SELECT xd.Xp, xd.SkillId, xd.Timestamp, xd.Level, xd.Rank
+                       FROM XpDrop AS xd
+                       WHERE xd.CharacterId = 1
+                         AND xd.Id = (
+                             SELECT x2.Id
+                             FROM XpDrop x2
+                             WHERE x2.CharacterId = xd.CharacterId
+                               AND x2.SkillId = xd.SkillId
+                             ORDER BY x2.TimeStamp DESC
+                             LIMIT 1
+                         )
+                         AND NOT EXISTS (
+                             SELECT 1
+                             FROM XpDrop recent
+                             WHERE recent.CharacterId = xd.CharacterId
+                               AND recent.SkillId = xd.SkillId
+                               AND recent.TimeStamp >= @cutoffDate
+                         )
+                       ORDER BY SkillId, TimeStamp;
+                       ";
+                    command.CommandText = sqlCommand;
+                    command.Parameters.AddWithValue("@characterId", characterId);
+                    command.Parameters.AddWithValue("@cutoffDate", backdatedDateTimeUtc);
+                    command.Prepare();
+
+                    using(SQLiteDataReader reader = command.ExecuteReader())
+                    {
+                        while(reader.Read())
+                        {
+                            int xp = reader.GetInt32(reader.GetOrdinal("Xp"));
+                            int skillId = reader.GetInt32(reader.GetOrdinal("SkillId"));
+                            DateTime timeStamp = DateTime.Parse(reader.GetString(reader.GetOrdinal("Timestamp")));
+                            int level = reader.GetInt32(reader.GetOrdinal("Level"));
+                            int rank = reader.GetInt32(reader.GetOrdinal("Rank"));
+
+                            XpDrop xpDrop = new XpDrop()
+                            {
+                                Xp = xp,
+                                SkillId = skillId,
+                                TimeStamp = timeStamp,
+                                Level = level,
+                                Rank = rank
+                            };
+                            xpDrops.Add(xpDrop);
+                        }
+                    }
+                }
+            }
+
+            return xpDrops;
+        }
+
         public async Task<Dictionary<int, CharacterLeaderboardEntry>> GetCharacterLeaderboardEntriesForOverallXp(DateTime backdatedDateTimeUtc)
         {
             Dictionary<int, CharacterLeaderboardEntry> overallXpDropsDictionary = new Dictionary<int, CharacterLeaderboardEntry>();
@@ -60,9 +159,9 @@ namespace GoonHighScoresServer.Repositories
                                 };
                                 overallXpDropsDictionary.Add(characterId, new CharacterLeaderboardEntry()
                                 {
-                                    Character = new Character() 
+                                    Character = new Character()
                                     {
-                                        Name = characterName ,
+                                        Name = characterName,
                                         Id = characterId
                                     },
                                     XpDrops = new List<XpDrop>() { xpDrop }
@@ -113,7 +212,7 @@ namespace GoonHighScoresServer.Repositories
                             {
                                 Id = id,
                                 Name = characterName,
-                            //    DiscordUserId = discordUserId,
+                                //    DiscordUserId = discordUserId,
                             };
                             characters.Add(character);
                         }
@@ -198,7 +297,7 @@ namespace GoonHighScoresServer.Repositories
                     SQLiteParameter rankParameter = command.Parameters.Add("@rank", DbType.Int32);
                     command.Parameters.AddWithValue("@timeStamp", processingTime);
 
-                    foreach (XpDrop xpDrop in xpDrops)
+                    foreach(XpDrop xpDrop in xpDrops)
                     {
                         characterIdParameter.Value = xpDrop.CharacterId;
                         skillIdParameter.Value = xpDrop.SkillId;
@@ -215,7 +314,7 @@ namespace GoonHighScoresServer.Repositories
             }
         }
 
-        public class HighScoreSQLiteRepositoryOptions
+    public class HighScoreSQLiteRepositoryOptions
         {
             public required string ConnectionString { get; set; }
         }

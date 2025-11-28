@@ -12,5 +12,6 @@ namespace GoonHighScoresServer.Interfaces
         /// <param name="lookbackTimeSpan">How far back to look for xp gains</param>
         /// <returns></returns>
         Task<TimespanXpLeaderboardViewModel> GetLastXTimeSpanOverallXpLeadboard(TimeSpan lookbackTimeSpan);
+        Task<CharacterOverview> GetCharacterOverview(string characterName);
     }
 }

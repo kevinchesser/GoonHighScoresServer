@@ -9,5 +9,7 @@ namespace GoonHighScoresServer.Interfaces
         Task<int?> GetMostRecentOverallXp(int characterId);
         Task SaveXpDrops(List<XpDrop> xpDrops, string processingTime);
         Task<Dictionary<int, CharacterLeaderboardEntry>> GetCharacterLeaderboardEntriesForOverallXp(DateTime backdatedDateTimeUtc);
+        Task<List<XpDrop>> GetAllXpDropsAndFallbackIfNoXpDropWithinCutoff(int characterId, DateTime backdatedDateTimeUtc);
+        Task<int> GetCharacterId(string characterName);
     }
 }

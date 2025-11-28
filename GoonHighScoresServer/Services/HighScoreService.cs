@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using GoonHighScoresServer.Exceptions;
 using GoonHighScoresServer.Interfaces;
 using GoonHighScoresServer.Models;
 
@@ -8,6 +8,7 @@ namespace GoonHighScoresServer.Services
     {
         private readonly ILogger<HighScoreService> _logger;
         private readonly IHighScoreRepository _highScoreRepository;
+        private static readonly TimeSpan OneWeekTimeSpan = TimeSpan.FromDays(7);
 
         public HighScoreService(ILogger<HighScoreService> logger, IHighScoreRepository highScoreRepository)
         {
@@ -18,6 +19,25 @@ namespace GoonHighScoresServer.Services
         public async Task<List<Character>> GetCharacters()
         {
             return await _highScoreRepository.GetCharacters();
+        }
+
+        public async Task<CharacterOverview> GetCharacterOverview(string characterName)
+        {
+            CharacterOverview characterOverview = new CharacterOverview();
+            int characterId = await _highScoreRepository.GetCharacterId(characterName);
+            if(characterId == -1)
+                throw new CharacterNotFoundException($"{characterName} is not being tracked");
+
+            List<XpDrop> allXpDropsForCharacter = await _highScoreRepository.GetAllXpDropsAndFallbackIfNoXpDropWithinCutoff(characterId, DateTime.UtcNow - OneWeekTimeSpan);
+
+            characterOverview.Character = new Character()
+            { 
+                Name = characterName,
+                Id = characterId
+            };
+            characterOverview.XpDropsBySkill = allXpDropsForCharacter.GroupBy(x => x.SkillId).ToDictionary(x => x.Key, y => y.OrderByDescending(x => x.TimeStamp).ToList());
+
+            return characterOverview;
         }
 
         public async Task<TimespanXpLeaderboardViewModel> GetLastXTimeSpanOverallXpLeadboard(TimeSpan lookbackTimeSpan)

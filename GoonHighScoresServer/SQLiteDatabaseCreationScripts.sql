@@ -2,7 +2,7 @@ GoonHighScores.db
 
 CREATE TABLE Character (
 	Id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-	Name TEXT(12) NOT NULL,
+	Name TEXT(12) NOT NULL COLLATE NOCASE,
 	DiscordUserId TEXT(60)
 );
 
@@ -82,7 +82,8 @@ DROP Table XpDrop;
 
 INSERT INTO XpDrop(CharacterId, SkillId, Xp, Level, Rank, Timestamp) VALUES 
 (1, 0, 500000000, 40000, 2326, '2025-11-25 15:40:37.639');
-
+INSERT INTO XpDrop(CharacterId, SkillId, Xp, Level, Rank, Timestamp) VALUES 
+(4, 0, 200000000, 250000, 1992, '2024-11-25 15:40:37.639');
 Select Max(Xp), SkillId from XpDrop 
 WHERE CharacterId = 1
 Group BY SkillId;
@@ -99,8 +100,9 @@ WHERE XpDrop.Timestamp = (
     SELECT MAX(XpDrop.Timestamp)
     FROM XpDrop
     WHERE XpDrop.Timestamp <= '2025-11-24 07:44:22.537') AND XpDrop.SkillId = 0;
-
+    
+SELECT Id from Character where Name = '';
+SELECT Xp, SkillId, Timestamp, Level, Rank from XpDrop WHERE CharacterId = 1;
 */
-
 
 
