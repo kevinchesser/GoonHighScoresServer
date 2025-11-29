@@ -25,6 +25,7 @@
         Farming = 20,
         Runecraft = 21,
         Hunter = 22,
-        Construction = 23
+        Construction = 23,
+        Sailing = 24
     }
 }
