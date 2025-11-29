@@ -101,7 +101,7 @@ namespace GoonHighScoresServer.Repositories
                             {
                                 Xp = xp,
                                 SkillId = skillId,
-                                TimeStamp = timeStamp,
+                                TimeStamp = DateTime.SpecifyKind(timeStamp, DateTimeKind.Utc),
                                 Level = level,
                                 Rank = rank
                             };
