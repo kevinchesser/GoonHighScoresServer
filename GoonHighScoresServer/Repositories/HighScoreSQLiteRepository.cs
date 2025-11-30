@@ -64,7 +64,7 @@ namespace GoonHighScoresServer.Repositories
 
                        SELECT xd.Xp, xd.SkillId, xd.Timestamp, xd.Level, xd.Rank
                        FROM XpDrop AS xd
-                       WHERE xd.CharacterId = 1
+                       WHERE xd.CharacterId = @characterId
                          AND xd.Id = (
                              SELECT x2.Id
                              FROM XpDrop x2
